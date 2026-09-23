@@ -44,8 +44,27 @@ class Cache:
             self._db = None
 
     @staticmethod
-    def hash_query(query: str, engines: list[str] | None = None) -> str:
-        key = f"{query}:{sorted(engines) if engines else ''}"
+    def hash_query(
+        query: str,
+        engines: list[str] | None = None,
+        language: str = "en",
+        max_results: int = 5,
+        extract: bool = True,
+        summarize: bool = False,
+    ) -> str:
+        # Every parameter that shapes the result set belongs in the key, otherwise
+        # a request would be served the response of a differently shaped one.
+        key = json.dumps(
+            {
+                "query": query,
+                "engines": sorted(engines) if engines else None,
+                "language": language,
+                "max_results": max_results,
+                "extract": extract,
+                "summarize": summarize,
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(key.encode()).hexdigest()[:16]
 
     @staticmethod
@@ -56,11 +75,21 @@ class Cache:
     def hash_content(content: str) -> str:
         return hashlib.sha256(content.encode()).hexdigest()[:16]
 
-    async def get_search(self, query: str, engines: list[str] | None = None) -> list[dict] | None:
+    async def get_search(
+        self,
+        query: str,
+        engines: list[str] | None = None,
+        language: str = "en",
+        max_results: int = 5,
+        extract: bool = True,
+        summarize: bool = False,
+    ) -> list[dict] | None:
         if not self._db:
             return None
 
-        query_hash = self.hash_query(query, engines)
+        query_hash = self.hash_query(
+            query, engines, language, max_results, extract, summarize
+        )
         now = time.time()
 
         async with self._lock:
@@ -78,12 +107,18 @@ class Cache:
         query: str,
         results: list[dict],
         engines: list[str] | None = None,
+        language: str = "en",
+        max_results: int = 5,
+        extract: bool = True,
+        summarize: bool = False,
         ttl: int | None = None
     ) -> None:
         if not self._db:
             return
 
-        query_hash = self.hash_query(query, engines)
+        query_hash = self.hash_query(
+            query, engines, language, max_results, extract, summarize
+        )
         now = time.time()
         ttl = ttl or settings.cache_ttl_search
 
@@ -161,11 +196,21 @@ class Cache:
                 return row[0]
         return None
 
-    async def invalidate_search(self, query: str, engines: list[str] | None = None) -> None:
+    async def invalidate_search(
+        self,
+        query: str,
+        engines: list[str] | None = None,
+        language: str = "en",
+        max_results: int = 5,
+        extract: bool = True,
+        summarize: bool = False,
+    ) -> None:
         if not self._db:
             return
 
-        query_hash = self.hash_query(query, engines)
+        query_hash = self.hash_query(
+            query, engines, language, max_results, extract, summarize
+        )
 
         async with self._lock:
             await self._db.execute(

@@ -1,0 +1,5 @@
+# Development / test dependencies.
+# Install on top of the API runtime deps:
+#   pip install -r api/requirements.txt -r mcp/requirements.txt -r requirements-dev.txt
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

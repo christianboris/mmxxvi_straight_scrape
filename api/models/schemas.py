@@ -9,6 +9,7 @@ class SearchRequest(BaseModel):
     summarize: bool = Field(default=False)
     bypass_cache: bool = Field(default=False)
     engines: list[str] | None = Field(default=None)
+    language: str = Field(default="en")
 
 
 class SearchResult(BaseModel):

@@ -18,8 +18,16 @@ router = APIRouter(prefix="/api", tags=["search"])
 async def search(request: SearchRequest) -> SearchResponse:
     start_time = time.time()
 
+    cache_key_params = {
+        "engines": request.engines,
+        "language": request.language,
+        "max_results": request.max_results,
+        "extract": request.extract,
+        "summarize": request.summarize,
+    }
+
     if not request.bypass_cache:
-        cached_results = await cache.get_search(request.query, request.engines)
+        cached_results = await cache.get_search(request.query, **cache_key_params)
         if cached_results:
             search_time_ms = int((time.time() - start_time) * 1000)
             results = [SearchResult(**r) for r in cached_results]
@@ -35,6 +43,7 @@ async def search(request: SearchRequest) -> SearchResponse:
             query=request.query,
             max_results=request.max_results,
             engines=request.engines,
+            language=request.language,
         )
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Search failed: {str(e)}")
@@ -95,7 +104,7 @@ async def search(request: SearchRequest) -> SearchResponse:
         summarize_time_ms = int((time.time() - summarize_start) * 1000)
 
     results_dicts = [r.model_dump(mode="json") for r in results]
-    await cache.set_search(request.query, results_dicts, request.engines)
+    await cache.set_search(request.query, results_dicts, **cache_key_params)
 
     return SearchResponse(
         query=request.query,

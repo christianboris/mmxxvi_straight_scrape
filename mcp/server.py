@@ -15,6 +15,7 @@ async def web_search(
     summarize: bool = False,
     bypass_cache: bool = False,
     engines: list[str] | None = None,
+    language: str = "en",
 ) -> dict:
     """
     Search the web and extract content from results.
@@ -26,6 +27,7 @@ async def web_search(
         summarize: Whether to generate AI summaries of the content
         bypass_cache: Skip cache and fetch fresh results
         engines: Specific search engines to use (e.g., ["duckduckgo", "brave"])
+        language: SearXNG language code for the search (e.g., "de", "en", "auto")
 
     Returns:
         Search results with optional markdown content and summaries
@@ -37,6 +39,7 @@ async def web_search(
             "extract": extract,
             "summarize": summarize,
             "bypass_cache": bypass_cache,
+            "language": language,
         }
         if engines:
             payload["engines"] = engines
