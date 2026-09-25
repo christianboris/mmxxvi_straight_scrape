@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 
 from cache import cache
 from models.schemas import SearchRequest, SearchResult, SearchResponse
-from services.searxng import searxng_client
+from services import web_search
 from services.fetcher import fetcher
 from services.extractor import extract_content
 from services.summarizer import summarizer
@@ -38,15 +38,15 @@ async def search(request: SearchRequest) -> SearchResponse:
                 total_results=len(results),
             )
 
-    try:
-        search_results = await searxng_client.search(
-            query=request.query,
-            max_results=request.max_results,
-            engines=request.engines,
-            language=request.language,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Search failed: {str(e)}")
+    search_results, source_errors = await web_search.search(
+        query=request.query,
+        max_results=request.max_results,
+        engines=request.engines,
+        language=request.language,
+    )
+    if not search_results and source_errors:
+        detail = "; ".join(f"{src}: {err}" for src, err in source_errors.items())
+        raise HTTPException(status_code=503, detail=f"Search failed: {detail}")
 
     search_time_ms = int((time.time() - start_time) * 1000)
 
@@ -103,8 +103,9 @@ async def search(request: SearchRequest) -> SearchResponse:
         results = list(results)
         summarize_time_ms = int((time.time() - summarize_start) * 1000)
 
-    results_dicts = [r.model_dump(mode="json") for r in results]
-    await cache.set_search(request.query, results_dicts, **cache_key_params)
+    if results:
+        results_dicts = [r.model_dump(mode="json") for r in results]
+        await cache.set_search(request.query, results_dicts, **cache_key_params)
 
     return SearchResponse(
         query=request.query,
@@ -113,4 +114,5 @@ async def search(request: SearchRequest) -> SearchResponse:
         extract_time_ms=extract_time_ms,
         summarize_time_ms=summarize_time_ms,
         total_results=len(results),
+        source_errors=source_errors or None,
     )

@@ -52,6 +52,6 @@ async def test_identical_request_is_served_from_cache(client, searxng):
 
 
 async def test_engines_remain_part_of_the_cache_key(client, searxng):
-    await post_search(client, engines=["duckduckgo"])
-    await post_search(client, engines=["brave"])
+    await post_search(client, engines=["google cse"])
+    await post_search(client, engines=["wikipedia"])
     assert len(searxng.calls) == 2

@@ -32,6 +32,7 @@ services:
       - ./data:/app/data:rw
     environment:
       - SEARXNG_URL=http://searxng:8080
+      - 'SEARCH_SOURCES=${SEARCH_SOURCES:-["searxng","duckduckgo","startpage","brave","bing"]}'
       - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-gpt-oss:20b}
       - CACHE_DIR=/app/data

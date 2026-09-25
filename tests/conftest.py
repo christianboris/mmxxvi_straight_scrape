@@ -14,6 +14,8 @@ from fastapi import FastAPI  # noqa: E402
 import routers.search as search_module  # noqa: E402
 from cache import cache  # noqa: E402
 from routers import search_router  # noqa: E402
+from services.browser_search import browser_search  # noqa: E402
+from services.ddgs_search import ddgs_search  # noqa: E402
 from services.fetcher import fetcher  # noqa: E402
 from services.searxng import searxng_client  # noqa: E402
 
@@ -23,6 +25,8 @@ class SearxngRecorder:
 
     def __init__(self):
         self.calls: list[dict] = []
+        # Number of hits to return; None = as many as requested.
+        self.hits: int | None = None
 
     async def search(
         self,
@@ -47,8 +51,39 @@ class SearxngRecorder:
                 "engine": "testengine",
                 "score": 1.0,
             }
-            for i in range(max_results)
+            for i in range(max_results if self.hits is None else self.hits)
         ]
+
+
+class NativeSourceRecorder:
+    """Stand-in for browser/ddgs search: per-engine canned hits or errors."""
+
+    def __init__(self):
+        self.calls: list[dict] = []
+        self.responses: dict[str, list[dict] | Exception] = {}
+
+    async def search(
+        self, engine: str, query: str, max_results: int = 10, language: str = "en"
+    ) -> list[dict]:
+        self.calls.append({
+            "engine": engine,
+            "query": query,
+            "max_results": max_results,
+            "language": language,
+        })
+        response = self.responses.get(engine, [])
+        if isinstance(response, Exception):
+            raise response
+        return response[:max_results]
+
+
+@pytest.fixture(autouse=True)
+def native_sources(monkeypatch) -> NativeSourceRecorder:
+    """No network: browser and ddgs searches share one recorder (empty by default)."""
+    recorder = NativeSourceRecorder()
+    monkeypatch.setattr(browser_search, "search", recorder.search)
+    monkeypatch.setattr(ddgs_search, "search", recorder.search)
+    return recorder
 
 
 @pytest.fixture

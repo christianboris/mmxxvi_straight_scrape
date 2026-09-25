@@ -2,7 +2,7 @@
 
 ![](straightscrape.png)
 
-A self-hosted web research and content extraction API. Search the web via SearXNG, fetch and render pages (including JS-heavy SPAs), extract clean markdown content, and optionally summarize with Ollama.
+A self-hosted web research and content extraction API. Search the web via SearXNG plus headless-browser and ddgs fallbacks, fetch and render pages (including JS-heavy SPAs), extract clean markdown content, and optionally summarize with Ollama.
 
 ## Quick Start
 
@@ -103,6 +103,7 @@ Environment variables (see `dotenv.example`):
 | `CACHE_TTL_SEARCH` | 1800 | Search cache TTL (seconds) |
 | `CACHE_TTL_CONTENT` | 86400 | Content cache TTL (seconds) |
 | `PLAYWRIGHT_MAX_CONTEXTS` | 3 | Max concurrent browser contexts |
+| `SEARCH_SOURCES` | `["searxng","duckduckgo","startpage","brave","bing"]` | Search sources, tried in order until enough unique results are found |
 
 ## Architecture
 
@@ -140,7 +141,7 @@ Environment variables (see `dotenv.example`):
 ## Tech Stack
 
 - **API**: FastAPI, httpx, Playwright, Trafilatura
-- **Search**: SearXNG (self-hosted metasearch)
+- **Search**: SearXNG (Google CSE, Bing, Wikipedia); DuckDuckGo, Startpage and Bing via headless Firefox; Brave via [ddgs](https://pypi.org/project/ddgs/)
 - **Extraction**: Trafilatura + readability-lxml fallback
 - **Cache**: SQLite
 - **Summarization**: Ollama

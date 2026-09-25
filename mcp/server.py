@@ -26,8 +26,12 @@ async def web_search(
         extract: Whether to fetch and extract markdown content from each result
         summarize: Whether to generate AI summaries of the content
         bypass_cache: Skip cache and fetch fresh results
-        engines: Specific search engines to use (e.g., ["duckduckgo", "brave"])
-        language: SearXNG language code for the search (e.g., "de", "en", "auto")
+        engines: Search sources to use, tried in order until max_results unique
+            hits are found. Native sources: "duckduckgo", "startpage", "bing",
+            "brave"; "searxng" uses SearXNG's defaults (Google CSE, Bing,
+            Wikipedia); any other name is passed to SearXNG as an engine name
+            (e.g. ["google cse"]). Default: all sources in configured order.
+        language: Language code for the search (e.g., "de", "en", "de-AT")
 
     Returns:
         Search results with optional markdown content and summaries

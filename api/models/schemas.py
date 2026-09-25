@@ -30,6 +30,8 @@ class SearchResponse(BaseModel):
     extract_time_ms: int | None = None
     summarize_time_ms: int | None = None
     total_results: int
+    # Sources that failed or were blocked (name -> reason); None if all answered.
+    source_errors: dict[str, str] | None = None
 
 
 class FetchRequest(BaseModel):

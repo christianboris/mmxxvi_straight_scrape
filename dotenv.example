@@ -7,6 +7,11 @@ MCP_PORT=9812
 OLLAMA_HOST=http://host.docker.internal:11434
 OLLAMA_MODEL=gpt-oss:20b
 
+# Search sources, tried in order until max_results unique hits are found (JSON list).
+# searxng = SearXNG (Google CSE, Bing, Wikipedia); duckduckgo/startpage/bing = headless
+# Firefox; brave = ddgs library. DuckDuckGo/Brave/Startpage block SearXNG directly.
+# SEARCH_SOURCES=["searxng","duckduckgo","startpage","brave","bing"]
+
 # Cache Configuration (in seconds)
 CACHE_TTL_SEARCH=1800      # 30 minutes for search results
 CACHE_TTL_CONTENT=86400    # 24 hours for page content

@@ -104,19 +104,26 @@ class PlaywrightPool:
             self._recycling = False
 
     @asynccontextmanager
-    async def get_context(self):
+    async def get_context(self, **context_options):
+        """Yield a fresh browser context; keyword args override the defaults.
+
+        Passing user_agent=None keeps the browser's own UA string, which then
+        matches the real Firefox version (search engines check for mismatches).
+        """
+        options = {
+            "viewport": {"width": 1280, "height": 720},
+            "user_agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) "
+                "Gecko/20100101 Firefox/121.0"
+            ),
+            "java_script_enabled": True,
+        }
+        options.update(context_options)
         async with self.semaphore:
             if not self._initialized:
                 async with self._lifecycle_lock:
                     await self._launch_browser()
-            context = await self._browser.new_context(
-                viewport={"width": 1280, "height": 720},
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) "
-                    "Gecko/20100101 Firefox/121.0"
-                ),
-                java_script_enabled=True,
-            )
+            context = await self._browser.new_context(**options)
             try:
                 yield context
             finally:
@@ -132,6 +139,10 @@ class Fetcher:
 
     def pool_stats(self) -> dict:
         return self._playwright_pool.stats()
+
+    def browser_context(self, **context_options):
+        """Borrow a context from the shared Playwright pool (async context manager)."""
+        return self._playwright_pool.get_context(**context_options)
 
     async def initialize(self) -> None:
         self._http_client = httpx.AsyncClient(

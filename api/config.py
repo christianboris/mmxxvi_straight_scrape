@@ -5,6 +5,17 @@ class Settings(BaseSettings):
     # SearXNG Configuration
     searxng_url: str = "http://searxng:8080"
 
+    # Search sources tried in order until max_results unique hits are found:
+    # "searxng", "duckduckgo", "startpage", "bing" (headless Firefox) and
+    # "brave" (ddgs). Override via SEARCH_SOURCES='["searxng","duckduckgo"]'.
+    search_sources: list[str] = [
+        "searxng",
+        "duckduckgo",
+        "startpage",
+        "brave",
+        "bing",
+    ]
+
     # Ollama Configuration
     ollama_host: str = "http://host.docker.internal:11434"
     ollama_model: str = "gpt-oss:20b"

@@ -34,8 +34,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers (Firefox for better stealth)
-RUN playwright install firefox
+# Install Playwright browsers (Firefox for better stealth). --with-deps pulls in
+# the system libraries Firefox needs (GTK etc.); without them launch() fails.
+RUN playwright install --with-deps firefox \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy application code
 COPY . .

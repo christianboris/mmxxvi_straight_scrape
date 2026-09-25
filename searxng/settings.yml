@@ -1,4 +1,11 @@
-use_default_settings: true
+use_default_settings:
+  engines:
+    # Load only these default engines; everything else (DuckDuckGo, Brave,
+    # Startpage, the Tor engines ahmia/torch, wikidata, ...) is not loaded.
+    keep_only:
+      - google cse
+      - bing
+      - wikipedia
 
 general:
   instance_name: "Scrape Search"
@@ -37,38 +44,21 @@ outgoing:
   pool_maxsize: 20
 
 engines:
-  - name: duckduckgo
-    engine: duckduckgo
-    shortcut: ddg
+  # DuckDuckGo, Brave, Qwant and Startpage answer SearXNG's HTTP client only
+  # with CAPTCHA / 429, even at a handful of requests per day. The API queries
+  # them itself (headless Firefox / ddgs), so SearXNG keeps only engines that
+  # still work from here (see use_default_settings.engines.keep_only above).
+  - name: google cse
+    engine: google_cse
+    shortcut: goc
     disabled: false
 
-  - name: brave
-    engine: brave
-    shortcut: br
+  - name: bing
+    engine: bing
+    shortcut: bi
     disabled: false
-
-  - name: qwant
-    engine: qwant
-    shortcut: qw
-    disabled: false
-    categories: general
 
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
     disabled: false
-
-  - name: wikidata
-    engine: wikidata
-    shortcut: wd
-    disabled: true
-
-  - name: google
-    engine: google
-    shortcut: g
-    disabled: true  # Often rate-limited
-
-  - name: bing
-    engine: bing
-    shortcut: bi
-    disabled: true  # Often rate-limited
